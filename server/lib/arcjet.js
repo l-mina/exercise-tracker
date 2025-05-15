@@ -8,13 +8,7 @@ export const aj = arcjet({
     rules: [
         // shield protects from common attacks
         shield({ mode: "LIVE" }),
-        detectBot({
-            // block all bots except search engines
-            mode: "LIVE",
-            allow: [
-                "CATEGORY:SEARCH_ENGINE"
-            ]
-        }),
+        
         // create a token bucket rate limit
         tokenBucket({
             mode: "LIVE",

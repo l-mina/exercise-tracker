@@ -34,9 +34,9 @@ export const getUser = async(req,res) => {
 
 export const createUser = async(req,res) => {
 
-    const { name, email, password } = req.params;
+    const { name, email, password } = req.body;
     if (!name || !email || !password ) {
-        return req.status(500).json({ success: false, message: "All fields are required" });
+        return res.status(500).json({ success: false, message: "All fields are required" });
     };
     try {
         const newUser = await sql
@@ -87,9 +87,9 @@ export const deleteUser = async(req,res) => {
             RETURNING *
         `;
         console.log("User was deleted ", deletedUser);
-        req.status(200).json({ success: true, data: deleteUser[0] });
+        res.status(200).json({ success: true, data: deleteUser[0] });
     } catch (error) {
         console.log("Error in deleteUser function ", error);
-        req.status(500).json({ success: false, message: "Internal Server Error "});
+        res.status(500).json({ success: false, message: "Internal Server Error "});
     }
 };
