@@ -9,7 +9,7 @@ import userRoutes from "./routes/userRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import exerciseRoutes from "./routes/exerciseRoutes.js";
 
-import { sql } from "./config/db.js";
+import { initDB } from "./config/initDB.js";
 import { aj } from "./lib/arcjet.js";
 import { authMiddleware } from "./middleware/authMiddleware.js";
 
@@ -67,34 +67,6 @@ app.use(async(req, res, next)=>{
 //app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/exercise", authMiddleware, exerciseRoutes);
-
-async function initDB(){
-    try {
-        await sql
-        `
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                email VARCHAR(255) NOT NULL,
-                password VARCHAR(255) NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(email)
-            )
-        `
-        await sql
-        `
-            CREATE TABLE IF NOT EXISTS userExercises (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER,
-                exercises VARCHAR(255),
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            )
-        `;
-        console.log("Database initialized successfully")
-    } catch (error) {
-        console.log("Error initDB ",error);
-    }
-};
 
 initDB().then(() => {
     app.listen(PORT, () => {
