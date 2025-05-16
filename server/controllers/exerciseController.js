@@ -63,7 +63,7 @@ export const createUserExercise = async(req,res) => {
 };
 
 export const getUserExercise = async(req,res) => {
-    const { user_id } = req.body;
+    const { user_id } = req.params;
     try {
         const userExercise = await sql
         `
@@ -97,7 +97,7 @@ export const createSession = async(req,res) => {
 };
 
 export const getSessionByExercise = async(req,res) => {
-    const { exercise_id } = req.body;
+    const { exercise_id } = req.params;
     try {
         const singleSession = await sql
         `
@@ -130,7 +130,7 @@ export const createSet = async(req,res) => {
 };
 
 export const getSetBySession = async(req,res) => {
-    const { session_id} = req.body;
+    const { session_id} = req.id;
     try {
         const singleSet = await sql
         `

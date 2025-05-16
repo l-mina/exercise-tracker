@@ -11,7 +11,7 @@ const router = express.Router();
 // Controllers for all exercises 
 router.get("/catalog", getExercises);
 
-router.get("/catalog/:id", getExercise);
+router.get("/catalog/Exercise:id", getExercise);
 
 router.post("/catalog", createExercise);
 
@@ -24,16 +24,16 @@ router.post("/catalog", createExercise);
 // Controllers for user's exercise
 router.post("/", createUserExercise);
 
-router.get("/", getUserExercise);
+router.get("/user/user:id", getUserExercise);
 
 // Controllers for session
 router.post("/session", createSession);
 
-router.get(":id/session", getSessionByExercise);
+router.get("/session/Exercise/:exerciseId", getSessionByExercise);
 
 // Controllers for sets
 router.post("/set", createSet);
 
-router.post("session:id/set", getSetBySession);
+router.post("set/session/:sessionID", getSetBySession);
 
 export default router;
