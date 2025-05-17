@@ -15,10 +15,10 @@ function ThemeSelector(){
 
     return(
         <div>
-            <label className="flex cursor-pointer gap-2">
-                <Sun />
+            <label className="flex cursor-pointer gap-2 items-center">
+                <Sun className="size-5"/>
                 <input type="checkbox" className="toggle theme-controller"  checked={darkmode} onChange={()=>{ if(darkmode){setDarkmode(!darkmode); setTheme("emerald")} else{ setDarkmode(!darkmode); setTheme("dim")}}}/>
-                <Moon />
+                <Moon className="size-5"/>
             </label>
         </div>
     )
