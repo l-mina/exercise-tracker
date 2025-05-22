@@ -1,6 +1,22 @@
-import { Link } from "react-router-dom"
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"
+import { userLogin } from "../store/userLogin"
 
 function LoginPage(){
+
+    const { formData, setFormData, loading, submitForm } = userLogin();
+    const navigate = useNavigate();
+    const token = submitForm;
+
+    useEffect(() => {
+
+        if(token){
+            navigate('/dashboard', { replace: true });
+        } else {
+            console.log("No token");
+        }
+    }, [submitForm]);
+    
 
     return(
         <div className="hero bg-base-200 min-h-screen">
@@ -13,14 +29,26 @@ function LoginPage(){
                 </div>
                 <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-xl">
                     <div className="card-body">
-                        <fieldset className="fieldset">
-                            <label className="label">Email</label>
-                            <input type="email" className="input " placeholder="Email" />
-                            <label className="label">Password</label>
-                            <input type="password" className="input" placeholder="Password" />
-                            <div><a className="link link-hover">Forgot password?</a></div>
-                            <button className="btn btn-secondary mt-4">Login</button>
-                        </fieldset>
+                        <form onSubmit={submitForm}>
+                            <fieldset className="fieldset">
+                                {/* email input */}
+                                <label className="label text-base-content">Email</label>
+                                <input type="email" className="input " placeholder="Email"  value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value })}/>
+                                {/* password input */}
+                                <label className="label text-base-content">Password</label>
+                                <input type="password" className="input" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value })}/>
+                                {/* password reset / register */}
+                                <div>New to Lift Log? <Link to="/signup" className="no-underline hover:opacity-80 link text-accent">Join now</Link></div>
+                                {/* submit button */}
+                                <button className="btn btn-secondary mt-4" disabled={!formData.email || !formData.password || loading} type="submit">
+                                    { loading? (
+                                        <span className="loading loading-spinner loading-sm" />
+                                    ) : (
+                                        <>Login</>
+                                    )}
+                                </button>
+                            </fieldset>
+                        </form>
                     </div>
                 </div>
             </div>

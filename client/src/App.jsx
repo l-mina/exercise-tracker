@@ -3,9 +3,13 @@ import Footer from "./components/Footer"
 
 import HomePage from "./pages/HomePage"
 import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
+import Dashboard from "./pages/DashboardPage"
 
-import { createBrowserRouter, RouterProvider, ScrollRestoration, Outlet } from "react-router-dom"
+import { createBrowserRouter, RouterProvider, ScrollRestoration, Outlet, redirect } from "react-router-dom"
 import { useThemeStore } from "./store/useThemeStore"
+
+import { Toaster } from "react-hot-toast"
 
 const HeaderLayout = () => (
   <>
@@ -15,6 +19,7 @@ const HeaderLayout = () => (
     <ScrollRestoration />
     <Outlet />
     <Footer />
+    <Toaster />
   </>
 );
 
@@ -30,6 +35,25 @@ const router = createBrowserRouter([
         path:'/login',
         element:<LoginPage />
       },
+      {
+        path:'/signup',
+        element:<RegisterPage />
+      },
+      {
+        path:'/dashboard',
+        element:<Dashboard />,
+        loader: async() => {
+          const isAuthenticated = true;
+          if(!isAuthenticated){
+            return redirect('/login');
+          }
+          return null;
+        },
+      },
+      {
+        path:'/*',
+        element:<HomePage />
+      }
     ]
   },
   
