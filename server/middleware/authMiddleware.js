@@ -2,16 +2,16 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const authMiddleware = async(req, res, next) => {
-    const token = req.headers['authorization'];
-    if (!token){
+    const authHeader = req.headers['authorization'];
+    if (!authHeader || !authHeader.startsWith('Bearer')){
         return res.status(401).json({ success: false, message: "No token provided" });
     }
-
-    jwt.verify(token,process.env.JWT_SECRET, (error, decoded)=>{
-        if(error){
-            return res.status(401).json({ success: false, message: "Invalid token" });
-        }
-        req.userId = decoded.id;
+    const token = authHeader.split(' ')[1];
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // attach user info to request
         next();
-    });
+    } catch (error) {
+        return res.status(401).json({ success: false, message: "Invalid token" });
+    }
 }

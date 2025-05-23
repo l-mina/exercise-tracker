@@ -2,6 +2,7 @@ import { sql } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import parseCookies from "../utils/parseCookies.js";
 
 export const registerUser = async(req,res) => {
 
@@ -31,7 +32,7 @@ export const registerUser = async(req,res) => {
 };
 
 const cookieOptions = {
-    httpOnly: true,
+    HttpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -57,10 +58,11 @@ export const loginUser = async(req,res) => {
         if (!passwordIsValid){
             return res.status(401).json({ success: false, message: "Invalid password" });
         };
-
         const accessToken = jwt.sign({ id : user[0].id }, process.env.JWT_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign({ id : user[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        res.cookie('refreshToken', refreshToken, cookieOptions);
+        //res.cookie('refreshToken', refreshToken, cookieOptions);
+        res.setHeader('Set-Cookie',`refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`);
+        
         res.status(200).json({success: true, data: user, accessToken})
     } catch (error) {
         console.log("Error in loginUser function ",error);
@@ -69,22 +71,28 @@ export const loginUser = async(req,res) => {
 };
 
 export const refreshAccess = async(req,res) => {
-    const { id }= req.params;
-    const refreshToken = req.cookies.refreshToken;
+    const cookies = parseCookies(req.headers.cookie);
+    const refreshToken = cookies.refreshToken;
     if(!refreshToken) return res.status(401).json({ success: false, message:"No refresh token provided" });
-    jwt.verify(refreshToken, process.env.JWT_SECRET, (error, user) => {
-        if(error) return res.status(403).json({ success: false, message:"Invalid refresh token" });
-        const newAccessToken = jwt.sign({ id: id}, process.env.JWT_SECRET, { expiresIn: '15m' });
-        res.status(200).json({ success: true, accessToken: newAccessToken})
-    })
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+        const { id } = decoded;
+        const newAccessToken = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+
+        //res.setHeader('Set-Cookie', `refreshToken=${newAccessToken}; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict`);
+        res.status(200).json({ accessToken: newAccessToken });
+    } catch (error) {
+        return res.status(403).json({ message: 'Invalid refresh token' });
+    }
 };
 
 export const logout = async(req,res) => {
-    res.cookie('refreshToken','',{
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-        expires: new Date(0), // expire immediately
-    });
+    res.setHeader('Set-Cookie', 'refreshToken=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict');
     res.status(200).json({ success: true, message:"Logged out successfully" });
 };
+
+/*
+refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY2ODM5LCJleHAiOjE3NDg1NzE2Mzl9.wKFIvJDK8mTFtmU5LxOjGn84wxxNiv7VeuqGJXf3_v8
+refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY3MzIxLCJleHAiOjE3NDg1NzIxMjF9.r4bPjrfETD2zi0ybbE4QQQJspJcnIWfmDITlH1yMMuE; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict
+refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY3Mzk4LCJleHAiOjE3NDg1NzIxOTh9.BfJksFLErHErdxYd9xEv1IZCZQLoifpS9kPqeVezx2w; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict
+*/

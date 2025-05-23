@@ -13,40 +13,45 @@ export const userLogin = create((set, get) => ({
     loading: false,
     error: null,
 
-    // form state
-    formData:{
+    // login form state
+    loginData:{
         email:"",
         password:"",
     },
 
-    // user info
-    userInfo:[],
+    // user's data
+    userInfo:{
+        name:"",
+        email:"",
+    },
 
-    setFormData: (formData) => set({formData}),
+    setLoginForm: (loginData) => set({loginData}),
 
-    // reset form to blank
-    resetForm: ()=>set({formData:{email:"",password:"",}}),
+    resetLoginForm: ()=>set({loginData:{email:"",password:"",}}),
 
-    submitForm: async(e) => {
+    submitLogin: async(e) => {
         e.preventDefault();
-        const navigate = useNavigate();
         set({ loading: true });
         try {
-            const { formData } = get();
-            const user = await axios.post(`${BASE_URL}/api/auth/login`,formData);
-            //const user = await get().fetchUserInfo();
-            //console.log(user);  
+            const { loginData } = get();
+            const user = await axios.post(`${BASE_URL}/api/auth/login`,loginData, {withCredentials: true});
+
             toast.success("User logged in");
-            console.log(user.data);
-            return user.data.accessToken;
+
+            set({userInfo:{ name:user.data.data[0].name, email:user.data.data[0].email }});
+            set({isAuthenticated:true});
+            set({accessToken: user.data.accessToken});
+            // TODO: reset login form
         } catch (error) {
             console.log("Error in submitForm function ", error);
             toast.error("Login is invalid")
+
         } finally {
             set({ loading: false })
         }
     },
 
+    /*
     fetchUserInfo: async() => {
         set({ loading: true });
         try {
@@ -62,14 +67,21 @@ export const userLogin = create((set, get) => ({
             set({ loading: false });
         }
     },
+    */
+    // TODO: register form state
 
-    refreshToken:[],
+    // JWT 
+    isAuthenticated: false,
+    setIsAuthenticated: (status) => set({ isAuthenticated: status }),
+
+    refreshToken:"",
+    accessToken:"",
 
     refresh: async() => {
         set({loading: true });
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/refresh`,{},{ withCredentials: true });
-            set({refreshToken: response.data.accessToken});
+            set({accessToken: response.data.accessToken});
         } catch (error) {
             console.log("Error in refreshAccessToken ", error);
         } finally {
@@ -77,14 +89,37 @@ export const userLogin = create((set, get) => ({
         }
     },
 
+    clearAuth: () => {
+        set({ accessToken: null, refreshToken: null, isAuthenticated: false, loading: false, error: null });
+    },
+
     logout: async() => {
         try {
             const response = await axios.post(`${BASE_URL}/api/auth/logout`, {}, { withCredentials: true });
-            //navigate('/login'); // Redirect to login page
-            set({ refreshToken: null });
+            userLogin.getState().clearAuth();
           } catch (error) {
             console.error('Logout failed', error);
-          }
+          } 
+    },
+
+    initialized: false,
+
+    initAuth : async() => {
+        //set({ loading: true });
+        try {
+            const res = await axios.post(`${BASE_URL}/api/auth/refresh`,null, { withCredentials: true });
+            console.log()
+            set({
+                accessToken: res.data.accessToken,
+                //userInfo: { name: res.data.data[0].name, email: res.data.data[0].email } ?? null,
+                initialized: true,
+                isAuthenticated: true,
+            });
+        } catch (error) {
+            set({ initialized: true });
+        } finally {
+            //set({ loading: false });
+        }
     },
 
 }));

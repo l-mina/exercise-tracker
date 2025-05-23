@@ -4,20 +4,24 @@ import { userLogin } from "../store/userLogin"
 
 function LoginPage(){
 
-    const { formData, setFormData, loading, submitForm } = userLogin();
+    const { loading, loginData, setLoginForm, submitLogin, isAuthenticated } = userLogin();
     const navigate = useNavigate();
-    const token = submitForm;
 
-    useEffect(() => {
-
-        if(token){
+    useEffect(()=>{
+        if(isAuthenticated){
             navigate('/dashboard', { replace: true });
-        } else {
-            console.log("No token");
         }
-    }, [submitForm]);
+    },[isAuthenticated]);
+ 
+    /*
     
-
+    console.log(refreshToken);
+    if(refreshToken){
+        console.log("heo")
+        setIsAuthenticated({isAuthenticated:true})
+        navigate('/dashboard', { replace: true })
+    }
+    */
     return(
         <div className="hero bg-base-200 min-h-screen">
             <div className="hero-content flex-col lg:flex-row">
@@ -29,24 +33,25 @@ function LoginPage(){
                 </div>
                 <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-xl">
                     <div className="card-body">
-                        <form onSubmit={submitForm}>
+                        <form onSubmit={submitLogin}>
                             <fieldset className="fieldset">
                                 {/* email input */}
                                 <label className="label text-base-content">Email</label>
-                                <input type="email" className="input " placeholder="Email"  value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value })}/>
+                                <input type="email" className="input " placeholder="Email"  value={loginData.email} onChange={(e) => setLoginForm({...loginData, email: e.target.value })}/>
                                 {/* password input */}
                                 <label className="label text-base-content">Password</label>
-                                <input type="password" className="input" placeholder="Password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value })}/>
+                                <input type="password" className="input" placeholder="Password" value={loginData.password} onChange={(e) => setLoginForm({...loginData, password: e.target.value })}/>
                                 {/* password reset / register */}
                                 <div>New to Lift Log? <Link to="/signup" className="no-underline hover:opacity-80 link text-accent">Join now</Link></div>
                                 {/* submit button */}
-                                <button className="btn btn-secondary mt-4" disabled={!formData.email || !formData.password || loading} type="submit">
+                                <button className="btn btn-secondary mt-4" disabled={!loginData.email || !loginData.password || loading} type="submit">
                                     { loading? (
                                         <span className="loading loading-spinner loading-sm" />
                                     ) : (
                                         <>Login</>
                                     )}
                                 </button>
+                                <Link to="/dashboard">dash</Link>
                             </fieldset>
                         </form>
                     </div>
