@@ -74,7 +74,6 @@ export const userLogin = create((set, get) => ({
     isAuthenticated: false,
     setIsAuthenticated: (status) => set({ isAuthenticated: status }),
 
-    refreshToken:"",
     accessToken:"",
 
     refresh: async() => {
@@ -90,7 +89,7 @@ export const userLogin = create((set, get) => ({
     },
 
     clearAuth: () => {
-        set({ accessToken: null, refreshToken: null, isAuthenticated: false, loading: false, error: null });
+        set({ accessToken: null, isAuthenticated: false, loading: false, error: null });
     },
 
     logout: async() => {
@@ -105,7 +104,7 @@ export const userLogin = create((set, get) => ({
     initialized: false,
 
     initAuth : async() => {
-        //set({ loading: true });
+        set({ loading: true });
         try {
             const res = await axios.post(`${BASE_URL}/api/auth/refresh`,null, { withCredentials: true });
             console.log()
@@ -118,8 +117,25 @@ export const userLogin = create((set, get) => ({
         } catch (error) {
             set({ initialized: true });
         } finally {
-            //set({ loading: false });
+            set({ loading: false });
         }
     },
+    user:null,
+    checkAuth: async () => {
+        set({ loading: true }); // Start loading
+        try {
+          // Attempt to fetch a protected resource or use a dedicated check endpoint
+          // The interceptor will handle token refresh if needed
+          const response = await axios.get(`${BASE_URL}/api/auth/check-auth`,{withCredentials: true}); // Create this endpoint on backend
+          // If the request is successful, it means we have a valid access token
+          // (either the existing one or a newly refreshed one)
+          //console.log(response.data.data.name);
+          set({ isAuthenticated: true, userInfo:{ name:response.data.data.name, email:response.data.data.email }, loading: false }); // Assuming backend returns user info
+        } catch (error) {
+          // If the request fails (even after refresh attempts), the user is not authenticated
+          set({ isAuthenticated: false, user: null, loading: false });
+          console.error('Authentication check failed:', error);
+        }
+      },
 
 }));

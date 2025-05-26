@@ -65,14 +65,16 @@ const router = createBrowserRouter([
 function App() {
 
   const theme = useThemeStore();
-  const initAuth = userLogin((state) => state.initAuth);
+  //const initAuth = userLogin((state) => state.initAuth);
+  const checkAuth = userLogin((state) => state.checkAuth);
   const initialized = userLogin((state) => state.initialized);
 
   useEffect(() => {
-    initAuth();
-  }, []); 
+    //initAuth();
+    checkAuth();
+  }, [checkAuth]); 
 
-  if(!initialized) return <div>Loading...</div>;
+  //if(!initialized) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-base-200 transition-colors duration-300" data-theme={theme.theme}>
