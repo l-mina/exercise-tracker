@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import axios from "axios"
 import toast from "react-hot-toast"
-import { useNavigate } from "react-router-dom";
 
 const BASE_URL = "http://localhost:3000";
 
@@ -13,16 +12,16 @@ export const userLogin = create((set, get) => ({
     loading: false,
     error: null,
 
-    // login form state
-    loginData:{
-        email:"",
-        password:"",
-    },
-
     // user's data
     userInfo:{
         name:"",
         email:"",
+    },
+
+    // login form state
+    loginData:{
+        email:"",
+        password:"",
     },
 
     setLoginForm: (loginData) => set({loginData}),
@@ -36,7 +35,7 @@ export const userLogin = create((set, get) => ({
             const { loginData } = get();
             const user = await axios.post(`${BASE_URL}/api/auth/login`,loginData, {withCredentials: true});
 
-            toast.success("User logged in");
+            toast.success("User signed in");
 
             set({userInfo:{ name:user.data.data[0].name, email:user.data.data[0].email }});
             set({isAuthenticated:true});
@@ -76,6 +75,39 @@ export const userLogin = create((set, get) => ({
 
     accessToken:"",
 
+    clearAuth: () => {
+        set({ accessToken: null, isAuthenticated: false, loading: false, error: null });
+    },
+
+    logout: async() => {
+        try {
+            const response = await axios.post(`${BASE_URL}/api/auth/logout`, {}, { withCredentials: true });
+            userLogin.getState().clearAuth();
+            if (response.data.success) toast.success("User signed out");
+
+          } catch (error) {
+            console.error('Logout failed', error);
+          } 
+    },
+
+    initialized: false,
+
+    user:null,
+    
+    // initialized at refresh(app opened)
+    checkAuth: async () => {
+        set({ loading: true });
+        try {
+          const response = await axios.get(`${BASE_URL}/api/auth/check-auth`,{ withCredentials: true} ); 
+          set({ isAuthenticated: true, initialized: true, userInfo:{ name:response.data.data.name, email:response.data.data.email }, loading: false }); 
+        } catch (error) {
+          set({ isAuthenticated: false, initialized: true, user: null, loading: false });
+          console.error('Error in checkAuth ', error);
+        } finally {
+            set({loading: false });
+        }
+      },
+
     refresh: async() => {
         set({loading: true });
         try {
@@ -87,55 +119,4 @@ export const userLogin = create((set, get) => ({
             set({loading: false });
         }
     },
-
-    clearAuth: () => {
-        set({ accessToken: null, isAuthenticated: false, loading: false, error: null });
-    },
-
-    logout: async() => {
-        try {
-            const response = await axios.post(`${BASE_URL}/api/auth/logout`, {}, { withCredentials: true });
-            userLogin.getState().clearAuth();
-          } catch (error) {
-            console.error('Logout failed', error);
-          } 
-    },
-
-    initialized: false,
-
-    initAuth : async() => {
-        set({ loading: true });
-        try {
-            const res = await axios.post(`${BASE_URL}/api/auth/refresh`,null, { withCredentials: true });
-            console.log()
-            set({
-                accessToken: res.data.accessToken,
-                //userInfo: { name: res.data.data[0].name, email: res.data.data[0].email } ?? null,
-                initialized: true,
-                isAuthenticated: true,
-            });
-        } catch (error) {
-            set({ initialized: true });
-        } finally {
-            set({ loading: false });
-        }
-    },
-    user:null,
-    checkAuth: async () => {
-        set({ loading: true }); // Start loading
-        try {
-          // Attempt to fetch a protected resource or use a dedicated check endpoint
-          // The interceptor will handle token refresh if needed
-          const response = await axios.get(`${BASE_URL}/api/auth/check-auth`,{withCredentials: true}); // Create this endpoint on backend
-          // If the request is successful, it means we have a valid access token
-          // (either the existing one or a newly refreshed one)
-          //console.log(response.data.data.name);
-          set({ isAuthenticated: true, userInfo:{ name:response.data.data.name, email:response.data.data.email }, loading: false }); // Assuming backend returns user info
-        } catch (error) {
-          // If the request fails (even after refresh attempts), the user is not authenticated
-          set({ isAuthenticated: false, user: null, loading: false });
-          console.error('Authentication check failed:', error);
-        }
-      },
-
 }));

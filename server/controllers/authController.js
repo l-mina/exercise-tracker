@@ -73,17 +73,15 @@ export const loginUser = async(req,res) => {
         if (!passwordIsValid){
             return res.status(401).json({ success: false, message: "Invalid password" });
         };
-        //const accessToken = jwt.sign({ id : user[0].id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-        //const refreshToken = jwt.sign({ id : user[0].id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
         const { accessToken, refreshToken } = generateTokens(user[0]);
         res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000 });
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
-        //res.setHeader('Set-Cookie',`refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800; SameSite=Strict`);
         
         res.status(200).json({success: true, data: user, accessToken})
     } catch (error) {
         console.log("Error in loginUser function ",error);
-        res.status(503).json({ success: false, message: "Internal Server Error " });
+        res.status(503).json({ success: false, message: "Internal Server Error" });
     }
 };
 
@@ -129,9 +127,3 @@ export const logout = async(req,res) => {
     res.clearCookie('refreshToken');
     res.status(200).json({ success: true, message:"Logged out successfully" });
 };
-
-/*
-refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY2ODM5LCJleHAiOjE3NDg1NzE2Mzl9.wKFIvJDK8mTFtmU5LxOjGn84wxxNiv7VeuqGJXf3_v8
-refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY3MzIxLCJleHAiOjE3NDg1NzIxMjF9.r4bPjrfETD2zi0ybbE4QQQJspJcnIWfmDITlH1yMMuE; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict
-refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzQ3OTY3Mzk4LCJleHAiOjE3NDg1NzIxOTh9.BfJksFLErHErdxYd9xEv1IZCZQLoifpS9kPqeVezx2w; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict
-*/
