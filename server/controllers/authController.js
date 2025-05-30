@@ -2,7 +2,6 @@ import { sql } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-import parseCookies from "../utils/parseCookies.js";
 
 export const registerUser = async(req,res) => {
 
@@ -29,13 +28,6 @@ export const registerUser = async(req,res) => {
         console.log("Error in createUser function ", error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-};
-
-const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 const generateTokens = (user) => {
@@ -67,7 +59,7 @@ export const loginUser = async(req,res) => {
         if (user.length === 0){
             return res.status(404).json({ success: false, message: "User not found" });
         };
-        console.log(user);
+        
         const passwordIsValid = bcrypt.compareSync(password,user[0].password);
         
         if (!passwordIsValid){
@@ -77,8 +69,9 @@ export const loginUser = async(req,res) => {
         const { accessToken, refreshToken } = generateTokens(user[0]);
         res.cookie('accessToken', accessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000 });
         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
-        
-        res.status(200).json({success: true, data: user, accessToken})
+    
+        res.status(200).json({ success: true, data: user, accessToken });
+
     } catch (error) {
         console.log("Error in loginUser function ",error);
         res.status(503).json({ success: false, message: "Internal Server Error" });
@@ -86,17 +79,14 @@ export const loginUser = async(req,res) => {
 };
 
 export const refreshAccess = async(req,res) => {
-    //const cookies = parseCookies(req.headers.cookie);
+
     const refreshToken = req.cookies.refreshToken;
     if(!refreshToken) return res.status(401).json({ success: false, message:"No refresh token provided" });
     try {
         const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
         const user = { id: decoded.userId }
-        const { newAccessToken, newRefreshAccess } = generateTokens(user);
-        //const newAccessToken = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '15m' });
-        //const newRefreshToken = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const { newAccessToken, newRefreshToken } = generateTokens(user);
 
-        //res.setHeader('Set-Cookie', `refreshToken=${newAccessToken}; HttpOnly; Path=/api/auth/; Max-Age=604800; SameSite=Strict`);
         res.cookie('accessToken', newAccessToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 15 * 60 * 1000 });
         res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
@@ -106,6 +96,8 @@ export const refreshAccess = async(req,res) => {
     }
 };
 
+
+
 export const verifyToken = async(req,res) => {
     const accessToken = req.cookies.accessToken;
 
@@ -113,9 +105,7 @@ export const verifyToken = async(req,res) => {
     try {
         jwt.verify(accessToken, process.env.JWT_SECRET, (err,decoded) => {
             req.user = decoded;
-            //next();
-            return res.status(200).json({ data:{name:"luna", email:"cat.com"}});
-        
+            return res.status(200).json({ data:{name:req.user.name, email:req.user.email}});
         });
     } catch (error) {
         console.log("Error in verifyToken ", error);

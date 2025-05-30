@@ -29,7 +29,7 @@ export const userLogin = create((set, get) => ({
     resetLoginForm: ()=>set({loginData:{email:"",password:"",}}),
 
     submitLogin: async(e) => {
-        e.preventDefault();
+        //e.preventDefault();
         set({ loading: true });
         try {
             const { loginData } = get();

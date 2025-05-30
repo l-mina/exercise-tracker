@@ -1,9 +1,37 @@
-import { Link } from "react-router-dom"
+import { useEffect } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { userRegister } from "../store/userRegister"
+import { userLogin } from "../store/userLogin"
 
 function RegisterPage() {
 
-    const { formData, setFormData, loading, registerSubmit } = userRegister();
+    const { formData, setFormData, loading, registerSubmit, success } = userRegister();
+    const { setLoginForm, loginData, loadingUser = loading, submitLogin, isAuthenticated } = userLogin();
+    
+    const navigate = useNavigate();
+
+    const handleRegister = async(e) => {
+        e.preventDefault();
+        registerSubmit();
+    };
+
+    function loginsUser() {
+        setLoginForm({ ...loginData, email: formData.email, password: formData.password,});
+        submitLogin();
+    };
+
+    useEffect(()=>{
+        if(isAuthenticated){
+            navigate('/dashboard', { replace: true });
+        }
+    },[isAuthenticated]);
+
+    useEffect(()=>{
+        if(success){
+            loginsUser();
+        }
+    },[success]);
+    
 
     return(
         <div className="min-h-screen max-w-6xl mx-auto px-4 py-10">
@@ -13,7 +41,7 @@ function RegisterPage() {
                 </div>
                 <div className="card bg-base-100 w-full max-w-sm shadow-xl">
                     <div className="card-body">
-                        <form onSubmit={registerSubmit}>
+                        <form onSubmit={handleRegister}>
                             <fieldset className="fieldset">
                                 {/* name input */}
                                 <label className="label text-base-content">Name</label>

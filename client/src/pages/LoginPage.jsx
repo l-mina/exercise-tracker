@@ -12,16 +12,12 @@ function LoginPage(){
             navigate('/dashboard', { replace: true });
         }
     },[isAuthenticated]);
- 
-    /*
-    
-    console.log(refreshToken);
-    if(refreshToken){
-        console.log("heo")
-        setIsAuthenticated({isAuthenticated:true})
-        navigate('/dashboard', { replace: true })
-    }
-    */
+
+    const handleLogin = async(e) => {
+        e.preventDefault();
+        submitLogin();
+    };
+
     return(
         <div className="hero bg-base-200 min-h-screen">
             <div className="hero-content flex-col lg:flex-row">
@@ -33,7 +29,7 @@ function LoginPage(){
                 </div>
                 <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-xl">
                     <div className="card-body">
-                        <form onSubmit={submitLogin}>
+                        <form onSubmit={handleLogin}>
                             <fieldset className="fieldset">
                                 {/* email input */}
                                 <label className="label text-base-content">Email</label>
