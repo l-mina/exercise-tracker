@@ -74,6 +74,7 @@ export const userLogin = create((set, get) => ({
     setIsAuthenticated: (status) => set({ isAuthenticated: status }),
 
     accessToken:"",
+    setToken: (state) => (set({accessToken:state})),
 
     clearAuth: () => {
         set({ accessToken: null, isAuthenticated: false, loading: false, error: null });

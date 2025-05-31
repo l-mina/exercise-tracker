@@ -71,7 +71,7 @@ app.use(async(req, res, next)=>{
     }
 });
 
-//app.use("/api/users", userRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/exercise", authMiddleware, exerciseRoutes);
 

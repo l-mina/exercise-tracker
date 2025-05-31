@@ -29,16 +29,16 @@ axiosInstance.interceptors.response.use(
     },
     async(error) => {
         const originalRequest = error.config;
-        const refreshToken = userLogin.getState().refreshToken;
 
-        if (error.response.status === 401 && !originalRequest._retry && refreshToken){
+        if (error.response.status === 401 && !originalRequest._retry){
             originalRequest._retry = true;
             try {
-                const response = await axios.post(`${BASE_URL}/api/auth/refresh`, { refreshToken });
-                const { accessToken, newRefreshToken } = response.data;
+                const response = await axios.post(`${BASE_URL}/api/auth/refresh`,{}, { withCredentials: true });
+                const { accessToken } = response.data;
 
-                userLogin.getState().setTokens({ accessToken, refreshToken: newRefreshToken });
+                userLogin.getState().setToken({ accessToken});
 
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                 originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                 return axiosInstance(originalRequest);
             } catch (refreshError) {
