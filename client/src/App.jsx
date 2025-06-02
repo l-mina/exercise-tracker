@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage"
 import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
 import Dashboard from "./pages/DashboardPage"
+import Session from "./pages/SessionPage"
 
 import { userLogin } from "./store/userLogin"
 
@@ -48,8 +49,12 @@ const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           {
-            path: '/dashboard',
+            path:'/dashboard',
             element: <Dashboard />
+          },
+          {
+            path:'/session',
+            element: <Session />
           }
         ],
       },

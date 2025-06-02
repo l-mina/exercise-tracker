@@ -5,7 +5,7 @@ const ExerciseCard = ({ exercise }) => {
         <div className="card bg-base-100 w-96 shadow-sm">
             <figure>
                 <img 
-                    src=""
+                    src="w"
                     alt="alt cap"
                 />
             </figure>
