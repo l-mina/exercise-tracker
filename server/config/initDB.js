@@ -40,10 +40,10 @@ export async function initDB(){
         `
             CREATE TABLE IF NOT EXISTS exerciseSession (
                 id SERIAL PRIMARY KEY,
-                exercise_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
                 performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 notes TEXT,
-                FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
         `;
         // sets (individual effort in  a session)
@@ -51,10 +51,13 @@ export async function initDB(){
         `
             CREATE TABLE IF NOT EXISTS sets (
                 id SERIAL PRIMARY KEY,
+                exercise_id INTEGER NOT NULL,
                 session_id INTEGER NOT NULL,
                 set_number INTEGER NOT NULL,
                 reps INTEGER NOT NULL,
                 weight DECIMAL(10,2) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE,
                 FOREIGN KEY(session_id) REFERENCES exerciseSession(id) ON DELETE CASCADE
             )
         `;
