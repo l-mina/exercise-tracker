@@ -96,3 +96,73 @@ export const deleteExercise = async(req,res) => {
 };
 
 // User's exercises
+export const getUserExercises = async(req,res) => {
+    const { id } = req.params;
+    const userId = Number(id);
+    if (isNaN(userId)){
+        return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+    try {
+        const userExercises = await sql
+        `
+            SELECT * FROM user_exercises WHERE user_id=${userId}
+        `;
+        if(userExercises.length === 0){
+            return res.status(404).json({ success: false, message: "No exercises found for this user" });
+        }
+        res.status(200).json({ success: true, data: userExercises });
+    } catch (error) {
+        handleServerError(res, error, "getUserExercises");
+    }
+};
+export const bookmarkExercise = async(req,res) => {
+    const { id } = req.params;
+    const userId = Number(id);
+    const { exerciseId } = req.body;
+    if (isNaN(userId)){
+        return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+    if (exerciseId){
+        return res.status(400).json({ success: false, message: "Exercise ID is required" });
+    }
+    try {
+        const [bookmarkedExercise] = await sql
+        `
+            INSERT INTO user_exercises (user_id, exercise_id)
+            VALUES (${userId},${exerciseId})
+            ON CONFLICT (user_id, exercise_id) DO NOTHING
+            RETURNING *
+        `;
+        if(!bookmarkedExercise){
+            return res.status(409).json({ success: false, message: "Exercise already bookmarked by this user" });
+        }
+        res.status(201).json({ success: true, data: bookmarkedExercise });
+    } catch (error) {
+        handleServerError(res, error, "bookmarkExercise");
+    }
+};
+export const deleteBookmarkExercise = async(req,res) => {
+    const { id, exercise_id } = req.params;
+    const userId = Number(id);
+    const exerciseId = Number(exercise_id);
+    if (isNaN(userId)){
+        return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+    if (isNaN(exerciseId)){
+        return res.status(400).json({ success: false, message: "Invalid exercise ID" });
+    }
+    try {
+        const deletedBookmarkExercise = await sql
+        `
+            DELETE FROM user_exercises
+            WHERE user_id=${userId} AND exercise_id=${exerciseId}
+            RETURNING *
+        `;
+        if(deletedBookmarkExercise.length === 0){
+            return res.status(404).json({ success:false, message: "Bookmarked exercise not found" });
+        }
+        res.status(200).json({ success: true, data: deletedBookmarkExercise[0] })
+    } catch (error) {
+        handleServerError(res, error, "deleteBookmarkExercise");
+    }
+};

@@ -1,7 +1,7 @@
 import express from "express";
 
 import { getExercises, getExercise, createExercise, updateExercise, deleteExercise,
-         getUserExercises, bookmarkExercise, updateBookmarkExercises, deleteBookmarkExercise,
+         getUserExercises, bookmarkExercise, deleteBookmarkExercise,
          getSessions, getSession, createSession, updateSession, deleteSession,
          getAllSetsInSession, getSetsByExerciseInSession, createSet, updateSet, deleteSet
 } from "../controllers/exerciseController.js";
@@ -25,8 +25,6 @@ router.delete("/exercises/:exerciseId", deleteExercise)
 router.get("/users/:userId/bookmark/exercises", getUserExercises);
 // Post to the bookmarked section/table
 router.post("users/:userId/bookmark/exercises", bookmarkExercise);
-// Update bookmarks
-router.put("/users/:userId/bookmark/exercises/:exerciseId", updateBookmarkExercises);
 // Delete from bookmarked
 router.delete("/users/:userId/bookmark/exercises/:exerciseId", deleteBookmarkExercise);
 

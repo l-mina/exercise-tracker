@@ -27,7 +27,7 @@ export async function initDB(){
         // user's exercises
         await sql
         `
-            CREATE TABLE IF NOT EXISTS userExercises (
+            CREATE TABLE IF NOT EXISTS user_exercises (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 exercise_id INTEGER NOT NULL,
@@ -38,7 +38,7 @@ export async function initDB(){
         // exercise session
         await sql
         `
-            CREATE TABLE IF NOT EXISTS exerciseSession (
+            CREATE TABLE IF NOT EXISTS exercise_session (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
