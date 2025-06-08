@@ -166,3 +166,110 @@ export const deleteBookmarkExercise = async(req,res) => {
         handleServerError(res, error, "deleteBookmarkExercise");
     }
 };
+
+// Session
+export const getSessions = async(req,res) => {
+    const { id } = req.params;
+    const userId = Number(id);
+    if (isNaN(userId)){
+        return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+    try {
+        const sessions = await sql
+        `
+            SELECT * FROM exercise_session WHERE user_id=${userId}
+        `;
+        if(sessions.length===0){
+            return res.status(404).json({ success: false, message: "Sessions not found for this user" });
+        }
+        res.status(200).json({ success: true, data: sessions })
+    } catch (error) {
+        handleServerError(res, error, "getSessions");
+    }
+};
+export const getSession = async(req,res) => {
+    const { id } = req.params;
+    const sessionId = Number(id);
+    if (isNaN(sessionId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    try {
+        const session = await sql
+        `
+            SELECT * FROM exercise_session WHERE id=${sessionId}
+        `;
+        if(session.length === 0){
+            return res.status(404).json({ success: false, message: "Session not found" });
+        }
+        res.status(200).json({ success: true, data: session[0] });
+    } catch (error) {
+        handleServerError(res, error, "getSession"); 
+    }
+};
+export const createSession = async(req,res) => {
+    const { id } = req.params;
+    const userId = Number(id);
+    if (isNaN(userId)){
+        return res.status(400).json({ success: false, message: "Invalid user ID" });
+    }
+    try {
+        const [addedSession] = await sql
+        `
+            INSERT INTO exercise_session (user_id)
+            VALUES(${userId})
+            RETURNING *
+        `;
+        if(!addedSession){
+            return res.status(500).json({ success: false, message: "Unable to add session" });
+        }
+        res.status(201).json({ success: true, data: addedSession });
+    } catch (error) {
+        handleServerError(res, error, "createSession");
+    }
+};
+export const updateSession = async(req,res) => {
+    const { id } = req.params;
+    const { timestamp, notes } = req.body;
+    const sessionId = Number(id);
+    if (isNaN(sessionId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    if (!timestamp|| isNaN(Date.parse(timestamp))){
+        return res.status(400).json({ success: false, message: "Invalid timestamp" });
+    }
+    try {
+        const [updatedSession] = await sql
+        `
+            UPDATE exercise_session
+            SET completed_at=${timestamp}, notes=${notes}
+            WHERE id=${sessionId}
+            RETURNING *
+        `;
+        if(!updatedSession){
+            return res.status(400).json({ success: false, message: "Session not updated" });
+        }
+        res.status(200).json({ success: true, data: updatedSession });
+    } catch (error) {
+        handleServerError(res, error, "updateSession"); 
+    }
+};
+export const deleteSession = async(req,res) => {
+    const { id } = req.params;
+    const sessionId = Number(id);
+    if (isNaN(sessionId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    try {
+        const [deletedSession] = await sql
+        `
+            DELETE FROM exercise_session WHERE id=${sessionId}
+            RETURNING *
+        `;
+        if(!deletedSession){
+            return res.status(404).json({ success: false, message: "Session not found" });
+        }
+        res.status(200).json({ success: true, data: deletedSession });
+    } catch (error) {
+        handleServerError(res, error, "deleteSession"); 
+    }
+};

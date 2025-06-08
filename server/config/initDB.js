@@ -32,7 +32,8 @@ export async function initDB(){
                 user_id INTEGER NOT NULL,
                 exercise_id INTEGER NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-                FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE
+                FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE,
+                UNIQUE(user_id, exercise_id)
             )
         `;
         // exercise session
@@ -42,6 +43,7 @@ export async function initDB(){
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 performed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
                 notes TEXT,
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             )
@@ -58,7 +60,7 @@ export async function initDB(){
                 weight DECIMAL(10,2) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE,
-                FOREIGN KEY(session_id) REFERENCES exerciseSession(id) ON DELETE CASCADE
+                FOREIGN KEY(session_id) REFERENCES exercise_session(id) ON DELETE CASCADE
             )
         `;
 
