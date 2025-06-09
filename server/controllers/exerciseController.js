@@ -273,3 +273,111 @@ export const deleteSession = async(req,res) => {
         handleServerError(res, error, "deleteSession"); 
     }
 };
+
+// Sets
+export const getAllSetsInSession = async(req,res) => {
+    const { id } = req.params;
+    const sessionId = Number(id);
+    if (isNaN(sessionId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    try {
+        const sets = await sql
+        `
+            SELECT * FROM sets WHERE session_id=${sessionId}
+        `;
+        res.status(200).json({ success: true, data: sets });
+    } catch (error) {
+        handleServerError(res, error, "getSets");
+    }
+};
+export const getSetsByExerciseInSession = async(req,res) => {
+    const { sessionId, exerciseId } = req.params;
+    const sId = Number(sessionId);
+    const eId = Number(exerciseId);
+    if (isNaN(sId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    if (isNaN(eId)){
+        return res.status(400).json({ success: false, message: "Invalid exercise ID" });
+    }
+    try {
+        const setsByExercise = await sql
+        `
+            SELECT * FROM sets 
+            WHERE session_id=${sId} AND exercise_id=${eId} 
+        `;
+        res.status(200).json({ success: true, data: setsByExercise });
+    } catch (error) {
+        handleServerError(res, error, "getSetsByExerciseInSession");
+    }
+};
+export const createSet = async(req,res) => {
+    const { id } = req.params;
+    const { exercise_id, set_number, reps, weight } = req.body;
+    const sessionId = Number(id);
+
+    if (isNaN(sessionId)){
+        return res.status(400).json({ success: false, message: "Invalid session ID" });
+    }
+    if (!exercise_id || !set_number || !reps || !weight){
+        return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+    try {
+        const [addedSet] = await sql
+        `
+            INSERT INTO sets (exercise_id, session_id, set_number, reps, weight)
+            VALUES(${exercise_id},${sessionId},${set_number},${reps},${weight})
+            RETURNING *
+        `;
+        res.status(201).json({ success: true, data: addedSet });
+    } catch (error) {
+        handleServerError(res, error, "createSet");
+    }
+};
+export const updateSet = async(req,res) => {
+    const { id } = req.params;
+    const { exercise_id, set_number, reps, weight } = req.body;
+    const setId = Number(id);
+    if (isNaN(setId)){
+        return res.status(400).json({ success: false, message: "Invalid set ID" });
+    }
+    if (!exercise_id || !set_number || !reps || !weight){
+        return res.status(400).json({ success: false, message: "All fields are required" });
+    }
+    try {
+        const [updatedSet] = await sql
+        `
+            UPDATE sets
+            SET exercise_id=${exercise_id}, set_number=${set_number}, reps=${reps}, weight=${weight}
+            WHERE id=${setId}
+            RETURNING *
+        `;
+        if (!updatedSet){
+            return res.status(404).json({ success: false, message: "Set not found" });
+        }
+        res.status(200).json({ success: true, data: updatedSet });
+    } catch (error) {
+        handleServerError(res, error, "updateSet");
+    }
+};
+export const deleteSet = async(req,res) => {
+    const { id } = req.params;
+    const setId = Number(id);
+    if (isNaN(setId)){
+        return res.status(400).json({ success: false, message: "Invalid set ID" });
+    }
+    try {
+        const [deletedSet] = await sql
+        `
+            DELETE FROM sets WHERE id=${setId}
+            RETURNING *
+        `;
+        if (!deletedSet.length){
+            return res.status(404).json({ success: false, message: "Set not found" });
+        }
+        res.status(200).json({ success: true, data: deletedSet });
+    } catch (error) {
+        handleServerError(res, error, "deleteSet");
+    }
+};

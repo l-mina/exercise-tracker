@@ -59,6 +59,7 @@ export async function initDB(){
                 reps INTEGER NOT NULL,
                 weight DECIMAL(10,2) NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP,
                 FOREIGN KEY(exercise_id) REFERENCES exercises(id) on DELETE CASCADE,
                 FOREIGN KEY(session_id) REFERENCES exercise_session(id) ON DELETE CASCADE
             )
