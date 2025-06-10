@@ -8,11 +8,50 @@ const handleServerError = (res, error, functionName) => {
 
 // Exercise catalog
 export const getExercises = async(req,res) => {
+    const id = req.user?.id;
+    const { tags, bookmarked, exclude_bookmarked } = req.query;
+    const tagList = tags ? tags.split(',').map(t => t.trim()) : [];
     try {
-        const exercises = await sql
-        `
-            SELECT * FROM exercises ORDER BY name
-        `;
+        let finalQuery = sql`SELECT DISTINCT e.* FROM exercises e`;
+        const joins = [];
+        const conditions = [];
+
+        if((bookmarked ===  'true' || exclude_bookmarked === 'true') && !id){
+            return res.status(401).json({ success: false, message: "User ID not valid" });
+        }
+        if(bookmarked === 'true'){
+            joins.push(sql`JOIN user_exercises ue ON e.id = ue.exercise_id`);
+            conditions.push(sql`ue.user_id=${id}`);
+        }
+        if(exclude_bookmarked==='true'){
+            conditions.push(sql`e.id NOT IN (
+                SELECT exercise_id FROM user_exercises WHERE user_id = ${id}
+            )`);
+        }
+
+        if(tagList.length > 0){
+            joins.push(sql`
+                JOIN exercise_tags et ON e.id = et.exercise_id
+                JOIN tags t on t.id = et.tag_id
+            `);
+            conditions.push(sql`t.name = ANY(${tagList})`);
+        }
+
+        for (const join of joins){
+            finalQuery = sql `${finalQuery} ${join}`;
+        }
+
+        if(conditions.length > 0){
+            finalQuery = sql`${finalQuery} WHERE `;
+            finalQuery = sql`${finalQuery} ${conditions[0]}`;
+            for (let i = 1; i < conditions.length; i++){
+                finalQuery = sql`${finalQuery} AND ${conditions[i]}`;
+            }
+        }
+        
+        finalQuery = sql`${finalQuery} ORDER by e.name`;
+
+        const exercises = await sql`${finalQuery}`;
         res.status(200).json({ success: true, data: exercises });
     } catch (error) {
         handleServerError(res, error, "getExercises");
@@ -37,15 +76,15 @@ export const getExercise = async(req,res) => {
     }
 };
 export const createExercise = async(req,res) => {
-    const { name, category, equipment } = req.body;
-    if(!name || !category || !equipment){
+    const { name, category, equipment, image } = req.body;
+    if(!name || !category || !equipment || !image){
         return res.status(400).json({ success: false, message: "All fields are required" });
     }
     try {
         const [newExercise] = await sql
         `
-            INSERT INTO exercises (name,category,equipment)
-            VALUES (${name},${category},${equipment})
+            INSERT INTO exercises (name,category,equipment,image)
+            VALUES (${name},${category},${equipment},${image})
             RETURNING *
         `;
         res.status(201).json({ success: true, data: newExercise });
@@ -55,7 +94,7 @@ export const createExercise = async(req,res) => {
 };
 export const updateExercise = async(req,res) => {
     const { exerciseId } = req.params;
-    const { name, category, equipment } = req.body;
+    const { name, category, equipment, image } = req.body;
     if (isNaN(Number(exerciseId))) {
         return res.status(400).json({ success: false, message: "Invalid exercise ID" });
     };
@@ -63,7 +102,7 @@ export const updateExercise = async(req,res) => {
         const [updatedExercise] = await sql
         `
             UPDATE exercises
-            SET name=${name}, category=${category}, equipment=${equipment}
+            SET name=${name}, category=${category}, equipment=${equipment}, image=${image}
             WHERE id=${exerciseId}
             RETURNING *
         `;
@@ -122,7 +161,7 @@ export const bookmarkExercise = async(req,res) => {
     if (isNaN(userId)){
         return res.status(400).json({ success: false, message: "Invalid user ID" });
     }
-    if (exerciseId){
+    if (!exerciseId){
         return res.status(400).json({ success: false, message: "Exercise ID is required" });
     }
     try {
@@ -379,5 +418,88 @@ export const deleteSet = async(req,res) => {
         res.status(200).json({ success: true, data: deletedSet });
     } catch (error) {
         handleServerError(res, error, "deleteSet");
+    }
+};
+
+// Tags
+export const getTags = async(req,res) => {
+    try {
+        const tags = await sql`
+            SELECT * FROM tags ORDER BY name
+        `;
+        res.status(200).json({ success: true, data: tags });
+    } catch (error) {
+        handleServerError(res, error, "getTags");
+    }
+};
+export const createTags = async(req,res) => {
+    const { name } = req.body;
+    if(!name){
+        return res.status(400).json({ success: false, message: "Tag name is required" });
+    }
+    try {
+        const [tag] = await sql`
+            INSERT INTO tags (name)
+            VALUES (${name})
+            ON CONFLICT (name) DO NOTHING
+            RETURNING id, name
+        `;
+        if(!tag){
+            return res.status(409).json({ success: false, message: "Tag already exists" });
+        }
+        res.status(201).json({ success: true, data: tag });
+    } catch (error) {
+        handleServerError(res, error, "createTags");
+    }
+};
+export const getTagsForExercise = async(req,res) => {
+    const { id } = req.params;
+    try {
+        const tags = await sql`
+            SELECT t.*
+            FROM exercise_tags et
+            JOIN tags t ON t.id = et.tag_id
+            WHERE et.exercise_id=${id}
+            ORDER BY t.name
+        `;
+        res.status(200).json({ success: true, data: tags });
+    } catch (error) {
+        handleServerError(res, error, "getTagsForExercise");
+    }
+};
+export const createTag = async(req,res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    
+    if(!name){
+        return res.status(400).json({ success: false, message: "Tag name required" });
+    }
+    try {
+        const [tag] = await sql`
+            INSERT INTO tags (name)
+            VALUES (${name})
+            ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+            RETURNING id, name
+        `;
+        await sql`
+            INSERT INTO exercise_tags (exercise_id, tag_id)
+            VALUES (${id}, ${tag.id})
+            ON CONFLICT DO NOTHING
+        `;
+        res.status(201).json({ success: true, data: tag });
+    } catch (error) {
+        handleServerError(res, error, "createTag");
+    }
+};
+export const removeTagFromExercise = async(req,res) => {
+    const { exerciseId, tagId } = req.params;
+    try {
+        await sql`
+            DELETE FROM exercise_tags
+            WHERE exercise_id = ${exerciseId} AND tag_id = ${tagId}
+        `;
+        res.status(200).json({ success: true, message: "Tag removed from exercise" });
+    } catch (error) {
+        handleServerError(res, error, "removeTagFromExercise");
     }
 };

@@ -21,7 +21,26 @@ export async function initDB(){
                 name VARCHAR(100) NOT NULL UNIQUE,
                 category VARCHAR(100),
                 equipment VARCHAR(100),
+                image VARCHAR(255),
                 description TEXT
+            )
+        `;
+        // exercise tags
+        await sql
+        `
+            CREATE TABLE IF NOT EXISTS tags (
+                id SERIAL PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL
+            )
+        `;
+        await sql
+        `
+            CREATE TABLE IF NOT EXISTS exercise_tags (
+                exercise_id INTEGER NOT NULL,
+                tag_id INTEGER NOT NULL,
+                FOREIGN KEY(exercise_id) REFERENCES exercises(id) ON DELETE CASCADE,
+                FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+                PRIMARY KEY (exercise_id, tag_id)
             )
         `;
         // user's exercises

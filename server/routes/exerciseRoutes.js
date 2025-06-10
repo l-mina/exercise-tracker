@@ -3,7 +3,8 @@ import express from "express";
 import { getExercises, getExercise, createExercise, updateExercise, deleteExercise,
          getUserExercises, bookmarkExercise, deleteBookmarkExercise,
          getSessions, getSession, createSession, updateSession, deleteSession,
-         getAllSetsInSession, getSetsByExerciseInSession, createSet, updateSet, deleteSet
+         getAllSetsInSession, getSetsByExerciseInSession, createSet, updateSet, deleteSet,
+         getTags, createTags, getTagsForExercise, createTag, removeTagFromExercise
 } from "../controllers/exerciseController.js";
 
 const router = express.Router(); 
@@ -19,6 +20,13 @@ router.post("/exercises", createExercise);
 router.put("/exercises/:exerciseId", updateExercise);
 // Delete an exercise
 router.delete("/exercises/:exerciseId", deleteExercise)
+
+// Controllers for tagging exercises
+router.get("/tags", getTags);
+router.post("/tags", createTags);
+router.get("/exercises/:exerciseId/tags", getTagsForExercise);
+router.post("/exercises/:exerciseId/tags", createTag);
+router.delete("/exercises/:exerciseId/tags/:tagId", removeTagFromExercise);
 
 // Controllers for user's exercises
 // Get all bookmarked user's exercises
