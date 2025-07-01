@@ -1,8 +1,16 @@
-import { PlusCircleIcon, Trash2Icon } from "lucide-react";
-import AddExerciseModal from "../components/AddExerciseModal";
+import { PlusCircleIcon, Trash2Icon, ListPlusIcon } from "lucide-react"
+import AddExerciseModal from "../components/AddExerciseModal"
 import ExerciseCard from "../components/ExerciseCard"
+import { exerciseStore } from "../store/exerciseStore"
+import { useEffect } from "react"
 
 function SessionPage() {
+    
+    const { loading, error, fetchExercises, exercises } = exerciseStore();
+
+    useEffect(() => {
+        fetchExercises();
+    },[fetchExercises]);
 
     return(
         <div className="min-h-screen bg-base-200 m-2 p-2 md:m-4 p-4 flex-col">
@@ -36,12 +44,37 @@ function SessionPage() {
             </div>
             <AddExerciseModal />
             
+            {error && <div className="alert alert-error mb-8">{error}</div>}
+
+            {exercises.length === 0 && !loading && (
+                <div className="flex flex-col justify-center items-center h-96 space-y-4">
+                    <div className="bg-base-100 rounded-full p-6">
+                        <ListPlusIcon className="size-12"/>
+                    </div>
+                    <div className="text-center space-y-2">
+                        <h3 className="text-2xl font-semibold">No exercises found</h3>
+                        <p className="text-secondary-neutral max-w-sm">
+                            Get started by adding your first exercise to the catalog
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            {loading ? (
+                <div className="flex justify-center items-center h-64">
+                    <div className="loading loading-spinner loading-lg" />
+                </div>
+            ) : (
+                <div className="m-2 p-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {exercises.map((ex) => (
+                        <ExerciseCard key={ex.id} exercise={ex} />
+                    ))}
+                </div>
+            )}
 
             <div className="m-2 p-2 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 <ExerciseCard exercise={{name:"Help"}} />
-                <ExerciseCard exercise={{name:"hello mine"}} />
-                <ExerciseCard exercise={{name:"hello mine"}} />
-                <ExerciseCard exercise={{name:"hello mine"}} />
+ 
             </div>
         </div>
     )

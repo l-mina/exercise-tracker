@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
 import Dashboard from "./pages/DashboardPage"
 import Session from "./pages/SessionPage"
+import ExercisePage from "./pages/ExercisePage"
 
 import { userLogin } from "./store/userLogin"
 
@@ -55,6 +56,10 @@ const router = createBrowserRouter([
           {
             path:'/session',
             element: <Session />
+          },
+          {
+            path:'/exercise/:id',
+            element: <ExercisePage />
           }
         ],
       },
