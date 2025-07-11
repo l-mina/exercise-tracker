@@ -1,6 +1,7 @@
 import { HeartIcon, EditIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { exerciseStore } from '../store/exerciseStore'
+import { Link } from 'react-router-dom'
 
 const ExerciseCard = ({ exercise }) => {
     const [bookmarked, setBookmarked] = useState(false);
@@ -20,7 +21,7 @@ const ExerciseCard = ({ exercise }) => {
             <div className="card-body space-y-1">
                 <h2 className="card-title text-primary">{exercise.name}</h2>
 
-                {/* Tags */}
+                {/* Tags 
                 <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-x-2 items-start">
                     <span className="text-secondary font-medium">Tags #:</span>
                     <div className="flex flex-wrap gap-1 sm:ml-0 ml-6">
@@ -28,7 +29,7 @@ const ExerciseCard = ({ exercise }) => {
                     <span className="badge badge-sm badge-soft">{exercise.equipment}</span>
                     </div>
                 </div>
-
+                */}
                 {/* Category */}
                 <div className="grid grid-cols-1 sm:grid-cols-[6rem_1fr] gap-x-2 items-start">
                     <span className="text-secondary font-medium">Category:</span>
@@ -49,9 +50,11 @@ const ExerciseCard = ({ exercise }) => {
                     <button className="btn btn-sm btn-soft btn-neutral-content" onClick={bookmarkExercise}>
                         <HeartIcon className="w-5 h-5 text-accent" fill={bookmarked? 'currentColor' : 'none'} stroke="currentColor" />
                     </button>
-                    <button className="btn btn-sm btn-ghost btn-neutral-content">
-                        <EditIcon className="w-5 h-5 text-accent" />
-                    </button>
+                    <Link to={`/exercise/${exercise.id}`}>
+                        <button className="btn btn-sm btn-ghost btn-neutral-content">
+                            <EditIcon className="w-5 h-5 text-accent" />
+                        </button>
+                    </Link>
                     <button className="btn btn-sm btn-ghost btn-neutral-content" onClick={() => deleteExercise(exercise.id)}>
                         <Trash2Icon className="w-5 h-5 text-error" />
                     </button>

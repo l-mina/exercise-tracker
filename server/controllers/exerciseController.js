@@ -468,7 +468,7 @@ export const getTagsForExercise = async(req,res) => {
     }
 };
 export const createTag = async(req,res) => {
-    const { id } = req.params;
+    const { exerciseId } = req.params;
     const { name } = req.body;
     
     if(!name){
@@ -483,7 +483,7 @@ export const createTag = async(req,res) => {
         `;
         await sql`
             INSERT INTO exercise_tags (exercise_id, tag_id)
-            VALUES (${id}, ${tag.id})
+            VALUES (${exerciseId}, ${tag.id})
             ON CONFLICT DO NOTHING
         `;
         res.status(201).json({ success: true, data: tag });
